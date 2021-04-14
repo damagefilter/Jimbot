@@ -8,7 +8,7 @@ using Discord.WebSocket;
 using Jimbot.Db;
 using Jimbot.Discord;
 
-namespace Jimbot.Plugins.Builtin {
+namespace Jimbot.Plugins.Builtin.ReactionRole {
     /// <summary>
     ///
     /// </summary>

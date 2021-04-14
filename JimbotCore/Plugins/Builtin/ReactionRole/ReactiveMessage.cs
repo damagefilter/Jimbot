@@ -1,6 +1,6 @@
 using SQLite;
 
-namespace Jimbot.Plugins.Builtin {
+namespace Jimbot.Plugins.Builtin.ReactionRole {
     /// <summary>
     /// There can be many with the same message ID
     /// but different emote IDs
@@ -14,7 +14,7 @@ namespace Jimbot.Plugins.Builtin {
 
         public bool IsUnicodeEmote { get; set; }
 
-        // These are ulong normally but sqlite doesn't do ulong
+        // These are ulong normally but sqlite-net doesn't do ulong
         public string ChannelId { get; set; }
 
         public string MessageId { get; set; }

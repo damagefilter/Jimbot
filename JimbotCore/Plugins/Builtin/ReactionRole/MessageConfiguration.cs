@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Discord;
 
-namespace Jimbot.Plugins.Builtin {
+namespace Jimbot.Plugins.Builtin.ReactionRole {
     public struct EmoteAndRole {
         public IEmote emote;
         public bool isUnicode;

@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Discord;
@@ -9,7 +8,7 @@ using Jimbot.Di;
 using Jimbot.Discord;
 using Jimbot.Logging;
 
-namespace Jimbot.Plugins.Builtin {
+namespace Jimbot.Plugins.Builtin.ReactionRole {
     public class ReactionRolePlugin : Plugin {
         private DbRepository dbRepo;
         private DiscordBot bot;
