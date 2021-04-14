@@ -15,7 +15,7 @@ namespace Jimbot {
             BootstrapPlugins(di);
             // Start the damn thing in an async context
             try {
-                new Program().MainAsync(di).GetAwaiter().GetResult();
+                new Program().MainAsync(di, log).GetAwaiter().GetResult();
             }
             catch (Exception e) {
                 log.Fatal(e.Message, e);
@@ -24,9 +24,14 @@ namespace Jimbot {
 
         }
 
-        public async Task MainAsync(DiContainer di) {
+        public async Task MainAsync(DiContainer di, Logger log) {
             var bot = di.Get<DiscordBot>();
-            await bot.Run();
+            try {
+                await bot.Run();
+            }
+            catch (Exception e) {
+                log.Fatal("Something crashed the bot. We need to end it here, I'm afraid.", e);
+            }
         }
 
         private static DiContainer PrepareDi() {
