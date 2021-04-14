@@ -15,14 +15,14 @@ namespace Jimbot.Plugins.Builtin.ReactionRole {
         private Logger log;
         public override void ProvideResources(DiContainer diContainer) {
             // we need to keep the state via this as singleton because discords command handler
-            // instantiates new command instances each time, instead of recycling existing ones. Idiots.
+            // instantiates new command instances each time, instead of recycling existing ones. Grah!
             diContainer.GetImplementation().Bind<MessageConfiguration>().ToSelf().InSingletonScope();
         }
 
         public override void Enable(DiContainer diContainer) {
             bot = diContainer.Get<DiscordBot>();
             dbRepo = diContainer.Get<DbRepository>();
-            log = LogManager.GetLogger(typeof(ReactionRolePlugin));
+            log = diContainer.Get<Logger>("plugin");
 
             bot.DiscordClient.ReactionAdded += OnReactionAdded;
             bot.DiscordClient.ReactionRemoved += OnReactionRemoved;

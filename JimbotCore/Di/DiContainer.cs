@@ -16,6 +16,10 @@ namespace Jimbot.Di {
             return this.resolver.Get<T>();
         }
 
+        public T Get<T>(string name) {
+            return this.resolver.Get<T>(name);
+        }
+
         /// <summary>
         /// Add a new Binding to the dependency containerBuilder.
         /// Binds a service type to a target type.

@@ -7,15 +7,15 @@ using Jimbot.Plugins;
 using Ninject;
 
 namespace Jimbot {
-    internal class Program {
+    internal class Jimbo {
         public static void Main(string[] args) {
             LogManager.ConfigureLogger();
-            Logger log = LogManager.GetLogger(typeof(Program));
+            Logger log = LogManager.GetLogger(typeof(Jimbo));
             DiContainer di = PrepareDi();
             BootstrapPlugins(di);
             // Start the damn thing in an async context
             try {
-                new Program().MainAsync(di, log).GetAwaiter().GetResult();
+                new Jimbo().MainAsync(di, log).GetAwaiter().GetResult();
             }
             catch (Exception e) {
                 log.Fatal(e.Message, e);
@@ -35,7 +35,8 @@ namespace Jimbot {
         }
 
         private static DiContainer PrepareDi() {
-            var kernel = new StandardKernel(new BotInjectionModule());
+            var kernel = new StandardKernel();
+            kernel.Load(new BotInjectionModule());
             return kernel.Get<DiContainer>();
         }
 

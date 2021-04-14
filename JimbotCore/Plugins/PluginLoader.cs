@@ -7,7 +7,9 @@ using Jimbot.Db;
 using Jimbot.Di;
 using Jimbot.Logging;
 using System.Linq;
+using Discord.Commands;
 using Jimbot.Discord;
+using Ninject;
 
 namespace Jimbot.Plugins {
     /// <summary>
@@ -25,9 +27,10 @@ namespace Jimbot.Plugins {
         private DiscordBot discordBot;
         private DiContainer di;
 
-        public PluginLoader(DbRepository db, AppConfig cfg, DiscordBot bot, DiContainer di) {
+        [Inject]
+        public PluginLoader(DbRepository db, AppConfig cfg, DiscordBot bot, DiContainer di, [Named("plugin")]Logger log) {
             plugins = new List<Plugin>();
-            log = LogManager.GetLogger(GetType());
+            this.log = log;
             database = db;
             discordBot = bot;
             this.cfg = cfg;

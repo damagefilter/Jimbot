@@ -3,16 +3,17 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using Jimbot.Config;
 using Jimbot.Logging;
+using Ninject;
 using SQLite;
 
 namespace Jimbot.Db {
     public class DbRepository : IDisposable {
         private readonly SQLiteConnection db;
-        private Logger log;
+        private readonly Logger log;
 
-        public DbRepository(AppConfig cfg) {
+        public DbRepository(AppConfig cfg, [Named("db")] Logger log) {
             db = new SQLiteConnection(cfg.DbPath);
-            log = LogManager.GetLogger(GetType());
+            this.log = log;
         }
 
         public void CreateOrMigrateTable<T>() where T : class, new () {

@@ -7,6 +7,8 @@ using Discord.Commands;
 using Discord.WebSocket;
 using Jimbot.Db;
 using Jimbot.Discord;
+using Jimbot.Logging;
+using Ninject;
 
 namespace Jimbot.Plugins.Builtin.ReactionRole {
     /// <summary>
@@ -17,11 +19,13 @@ namespace Jimbot.Plugins.Builtin.ReactionRole {
         private readonly MessageConfiguration msgCfg;
         private DiscordBot bot;
         private DbRepository repo;
+        private Logger log;
 
-        public ReactionControlCommands(MessageConfiguration msgCfg, DiscordBot bot, DbRepository repo) {
+        public ReactionControlCommands(MessageConfiguration msgCfg, DiscordBot bot, DbRepository repo, [Named("plugin")]Logger log) {
             this.msgCfg = msgCfg;
             this.bot = bot;
             this.repo = repo;
+            this.log = log;
         }
 
         [Command("jrr begin")]
@@ -139,7 +143,7 @@ namespace Jimbot.Plugins.Builtin.ReactionRole {
 
 
             if (!(bot.DiscordClient.GetChannel(msgCfg.channelId) is ISocketMessageChannel channel)) {
-                Console.WriteLine("provided channel is not a socket message channel");
+                log.Error("provided channel is not a socket message channel");
             }
             else {
                 var message = await channel.SendMessageAsync(msgCfg.message);
