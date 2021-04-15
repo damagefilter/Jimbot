@@ -3,7 +3,6 @@ using Jimbot.Db;
 using Jimbot.Discord;
 using Jimbot.Logging;
 using Jimbot.Plugins;
-using Ninject;
 using Ninject.Modules;
 
 namespace Jimbot.Di {

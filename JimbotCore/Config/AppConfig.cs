@@ -1,5 +1,3 @@
-using System.IO;
-using Jimbot.Tools;
 using Newtonsoft.Json;
 
 namespace Jimbot.Config {
@@ -7,8 +5,8 @@ namespace Jimbot.Config {
     /// This is NOT the data from App.config.
     /// This is a custom config file in user space.
     /// </summary>
-    public class AppConfig {
-        private const string FilePath = "config/env.json";
+    public class AppConfig : Configuration<AppConfig> {
+
 
         [JsonProperty]
         private string dbPath;
@@ -31,7 +29,7 @@ namespace Jimbot.Config {
         [JsonIgnore]
         public string BotGame => botGame;
 
-        private void Ensure() {
+        public override void Ensure() {
             if (string.IsNullOrEmpty(dbPath)) {
                 dbPath = "config/database.db";
             }
@@ -43,19 +41,10 @@ namespace Jimbot.Config {
             if (string.IsNullOrEmpty(botGame)) {
                 botGame = "mit Bytes das Tango Game";
             }
-        }
 
-        public void Save() {
-            IoHelper.EnsureFileAndPath(FilePath);
-            File.WriteAllText(FilePath, JsonConvert.SerializeObject(this, Formatting.Indented));
-        }
-
-        public static AppConfig Load() {
-            IoHelper.EnsureFileAndPath(FilePath);
-
-            var obj = JsonConvert.DeserializeObject<AppConfig>(File.ReadAllText(FilePath)) ?? new AppConfig();
-            obj.Ensure();
-            return obj;
+            if (string.IsNullOrEmpty(botToken)) {
+                botToken = "Get this from discord developer central.";
+            }
         }
     }
 }
