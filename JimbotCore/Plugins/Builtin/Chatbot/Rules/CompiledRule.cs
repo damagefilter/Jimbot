@@ -31,16 +31,21 @@ namespace Jimbot.Plugins.Builtin.Chatbot.Rules {
         private readonly int primaryMatches;
         private readonly int secondaryMatches;
         private readonly bool canIgnorePrimaryInConversation;
+        private readonly bool allowMoodMismatch;
+        private readonly Mood representedMood;
 
         private readonly Random random;
 
-        private CompiledRule(List<ResponseDescriptor> messages, RawResponseNode node) {
+
+        private CompiledRule(Mood thisMood, List<ResponseDescriptor> messages, RawResponseNode node) {
+            representedMood = thisMood;
             this.messages = messages;
             primaryMatchPattern = new Regex(string.Join("|", node.PrimaryWordPool), RegexOptions.Compiled | RegexOptions.IgnoreCase);
             secondaryMatchPattern = new Regex(string.Join("|", node.SecondaryWordPool), RegexOptions.Compiled | RegexOptions.IgnoreCase);
             primaryMatches = node.MinPrimaryMatches;
             secondaryMatches = node.MinSecondaryMatches;
             canIgnorePrimaryInConversation = node.CanIgnorePrimary;
+            allowMoodMismatch = node.AllowNeutralAnswerInMoods;
             random = new Random();
         }
 
@@ -67,6 +72,25 @@ namespace Jimbot.Plugins.Builtin.Chatbot.Rules {
             return primary.Count >= primaryMatches && countMatches;
         }
 
+        public bool Matches(string msg, Mood mood, bool isInConversation) {
+            if (representedMood != mood && !allowMoodMismatch) {
+                return false;
+            }
+            // todo: MatchCollection will have an effect on accumulated garbage, that needs addressing eventually.
+            // but afaik this is, at least when using regex, the cheapest option to go for.
+            // Future plan is to train a NN from the bot chatter file to sort out responses.
+            // at that point we don't need to manually match. Maybe it's not faster but less GC intensive for sure.
+            var matches = secondaryMatchPattern.Matches(msg);
+            bool countMatches = matches.Count >= secondaryMatches;
+
+            if (isInConversation && canIgnorePrimaryInConversation) {
+                return countMatches;
+            }
+
+            var primary = primaryMatchPattern.Matches(msg);
+            return primary.Count >= primaryMatches && countMatches;
+        }
+
         /// <summary>
         /// Returns a random message from the message pool.
         /// </summary>
@@ -74,7 +98,6 @@ namespace Jimbot.Plugins.Builtin.Chatbot.Rules {
         public string GetRandomMessage() {
             int baseProbability = random.Next(1, 101); // chance that we respond with anything at all
             // -1 probability in nodes means it should always be considered.
-            Console.WriteLine($"base probability is {baseProbability}");
             return GetWightedRandomItem(messages.Where(x => x.Probability >= baseProbability || x.Probability < 0), x => x.Probability < 0 ? 100 : x.Probability).Message;
         }
 
@@ -84,11 +107,10 @@ namespace Jimbot.Plugins.Builtin.Chatbot.Rules {
 
             var totalWeight = items.Sum(weightKey);
             var randomWeightedIndex = random.Next(totalWeight);
-            Console.WriteLine($"random weight index: {randomWeightedIndex}");
             var itemWeightedIndex = 0;
             foreach (var item in items) {
                 itemWeightedIndex += weightKey(item);
-                if (randomWeightedIndex < itemWeightedIndex)
+                if (randomWeightedIndex <= itemWeightedIndex)
                     return item;
             }
 
@@ -99,7 +121,7 @@ namespace Jimbot.Plugins.Builtin.Chatbot.Rules {
             List<ResponseDescriptor> responsesForMood = node.Responses.Where(x => x.Mood == targetMood).ToList();
             SubstituteBotNicks(cfg, responsesForMood);
 
-            return responsesForMood.Count == 0 ? null : new CompiledRule(responsesForMood, node);
+            return responsesForMood.Count == 0 ? null : new CompiledRule(targetMood, responsesForMood, node);
         }
 
         private static void SubstituteBotNicks(ChatbotConfig cfg, List<ResponseDescriptor> descriptors) {

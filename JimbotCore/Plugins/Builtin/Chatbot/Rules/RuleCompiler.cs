@@ -22,9 +22,21 @@ namespace Jimbot.Plugins.Builtin.Chatbot.Rules {
                     SubstituteBotNicks(cfg, node.SecondaryWordPool);
                 }
 
-                sortedResponses[Mood.Neutral].Add(CompiledRule.CompileForMood(Mood.Neutral, node, cfg));
-                sortedResponses[Mood.Friendly].Add(CompiledRule.CompileForMood(Mood.Friendly, node, cfg));
-                sortedResponses[Mood.Angry].Add(CompiledRule.CompileForMood(Mood.Angry, node, cfg));
+                var neutral = CompiledRule.CompileForMood(Mood.Neutral, node, cfg);
+                if (neutral != null) {
+                    sortedResponses[Mood.Neutral].Add(neutral);
+                }
+
+                var friendly = CompiledRule.CompileForMood(Mood.Friendly, node, cfg);
+                if (friendly != null) {
+                    sortedResponses[Mood.Friendly].Add(friendly);
+                }
+
+                var angry = CompiledRule.CompileForMood(Mood.Angry, node, cfg);
+                if (angry != null) {
+                    sortedResponses[Mood.Angry].Add(angry);
+                }
+
             }
 
             return sortedResponses;

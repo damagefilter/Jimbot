@@ -15,6 +15,14 @@ namespace Jimbot.Plugins.Builtin.Chatbot.Ai {
 
         public bool CanIgnorePrimary { get; set; }
 
+        /// <summary>
+        /// We have a cache of max 10 possible compiled responses.
+        /// Each tied to a specific mood.
+        /// With this option to true, we fill up mood answers (angry or friendly) with neutral ones
+        /// to get a bigger possible answer pool. However, this is not always wanted so it can be turned off.
+        /// </summary>
+        public bool AllowNeutralAnswerInMoods { get; set; } = true;
+
         public List<string> PrimaryWordPool { get; set; }
 
         public List<string> SecondaryWordPool { get; set; }

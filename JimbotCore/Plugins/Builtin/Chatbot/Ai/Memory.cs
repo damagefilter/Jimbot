@@ -30,7 +30,7 @@ namespace Jimbot.Plugins.Builtin.Chatbot.Ai {
             int currentRule = 0;
 
             if (idealRules.Count > 0) {
-                foreach (var rule in idealRules.Where(rule => rule.Matches(message, conversationRunning))) {
+                foreach (var rule in idealRules.Where(r => r.Matches(message, conversationRunning))) {
                     rules[currentRule++] = rule;
                     if (currentRule >= maxRules) {
                         return maxRules;
@@ -39,7 +39,7 @@ namespace Jimbot.Plugins.Builtin.Chatbot.Ai {
             }
 
             if (defaultRules.Count > 0 && currentRule < maxRules) {
-                foreach (var rule in defaultRules.Where(rule => rule.Matches(message, conversationRunning))) {
+                foreach (var rule in defaultRules.Where(rule => rule.Matches(message, idealMood, conversationRunning))) {
                     rules[currentRule++] = rule;
                     if (currentRule >= maxRules) {
                         return maxRules;

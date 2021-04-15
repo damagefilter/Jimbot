@@ -10,6 +10,14 @@ namespace Jimbot.Plugins.Builtin.Chatbot {
         /// extend that to make the bot react to "Herbert" or "Bot" as well.
         /// Make it feel more natural.
         /// </summary>
+        public string RulesPath { get; set; }
+        /// <summary>
+        /// Names by which the bot can feel spoken to.
+        /// For instance, if the current user or nick name is "HerbertTheBot",
+        /// we will automatically take this into account. But with these nicks you can
+        /// extend that to make the bot react to "Herbert" or "Bot" as well.
+        /// Make it feel more natural.
+        /// </summary>
         public List<string> BotNicks { get; set; }
 
         /// <summary>
@@ -35,6 +43,8 @@ namespace Jimbot.Plugins.Builtin.Chatbot {
         public List<string> PositiveWords { get; set; }
 
         public override void Ensure() {
+
+            RulesPath ??= "config/ChatBotRules";
 
             BotNicks ??= new List<string>() {
                 "Herbert",

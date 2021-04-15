@@ -1,6 +1,9 @@
 using System.Collections.Generic;
+using System.IO;
 using Jimbot.Config;
 using Jimbot.Plugins.Builtin.Chatbot.Ai;
+using Jimbot.Tools;
+using Newtonsoft.Json;
 
 namespace Jimbot.Plugins.Builtin.Chatbot.Rules {
     /// <summary>
@@ -9,14 +12,10 @@ namespace Jimbot.Plugins.Builtin.Chatbot.Rules {
     /// And one day this'll be the training for the neural network that will drive the bot.
     /// If I ever get around implementing it anyway.
     /// </summary>
-    public class ChatbotRuleConfig : Configuration<ChatbotRuleConfig> {
+    public class ChatbotRuleConfig {
         public List<RawResponseNode> responseRules;
 
-        public override void Ensure() {
-            // todo or note: v4 had respond time attributes. But the better idea is
-            // to assume a constant speed of typing and calculate the time it would take
-            // to type this response and use that as respond time.
-            // discord API would even allow to "set typing" for the bot to make it look super spooky real
+        public void Ensure() {
             responseRules ??= new List<RawResponseNode> {
                 new() {
                     PrimaryWordPool = new List<string> {
@@ -98,6 +97,37 @@ namespace Jimbot.Plugins.Builtin.Chatbot.Rules {
                     }
                 }
             };
+        }
+
+        public void Save(ChatbotConfig cfg) {
+            string path = Path.Combine(cfg.RulesPath, "__example_delete_me.json");
+            IoHelper.EnsureFileAndPath(path);
+            File.WriteAllText(path, JsonConvert.SerializeObject(this, Formatting.Indented));
+        }
+
+        public static ChatbotRuleConfig Load(ChatbotConfig cfg) {
+            // I love late static binding
+            string path = cfg.RulesPath;
+
+            IoHelper.EnsurePath(path);
+
+            bool hasFiles = false;
+            ChatbotRuleConfig combined = new ChatbotRuleConfig();
+            combined.responseRules = new List<RawResponseNode>();
+            foreach (var file in Directory.EnumerateFiles(path, "*.json")) {
+                ChatbotRuleConfig obj = JsonConvert.DeserializeObject<ChatbotRuleConfig>(File.ReadAllText(file));
+                if (obj != null) {
+                    hasFiles = true;
+                    combined.responseRules.AddRange(obj.responseRules);
+                }
+            }
+
+            if (!hasFiles) {
+                // write out a defaults if we got nothing
+                combined.Ensure();
+                combined.Save(cfg);
+            }
+            return combined;
         }
     }
 }

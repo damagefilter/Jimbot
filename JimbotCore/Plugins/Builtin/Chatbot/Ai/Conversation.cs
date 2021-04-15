@@ -89,7 +89,7 @@ namespace Jimbot.Plugins.Builtin.Chatbot.Ai {
 
             await Task.Delay(TimeSpan.FromSeconds(timeToWait));
             isTypingState.Dispose();
-            await channel.SendMessageAsync(msg);
+            await channel.SendMessageAsync(msg.Replace("{user}", user.GetDisplayName()));
         }
 
         private void UpdateConversationMood(string message) {
