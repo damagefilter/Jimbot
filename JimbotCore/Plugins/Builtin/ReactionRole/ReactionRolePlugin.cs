@@ -6,6 +6,7 @@ using Discord.WebSocket;
 using Jimbot.Db;
 using Jimbot.Di;
 using Jimbot.Discord;
+using Jimbot.Extensions;
 using Jimbot.Logging;
 
 namespace Jimbot.Plugins.Builtin.ReactionRole {
@@ -50,7 +51,7 @@ namespace Jimbot.Plugins.Builtin.ReactionRole {
                         return;
                     }
                     await user.RemoveRoleAsync(role);
-                    log.Info($"Role {role.Name} removed from {user.Nickname}!");
+                    log.Info($"Role {role.Name} removed from {user.GetDisplayName()}!");
 
                 }
                 catch (Exception e) {
@@ -90,7 +91,7 @@ namespace Jimbot.Plugins.Builtin.ReactionRole {
                         }
                     }
                     await user.AddRoleAsync(role);
-                    log.Info($"Role {role.Name} added to {user.Nickname}!");
+                    log.Info($"Role {role.Name} added to {user.GetDisplayName()}!");
 
                 }
                 catch (Exception e) {
@@ -100,16 +101,12 @@ namespace Jimbot.Plugins.Builtin.ReactionRole {
         }
 
         public override void InstallRoutine(DiContainer di) {
-            if (dbRepo == null) {
-                dbRepo = di.Get<DbRepository>();
-            }
+            dbRepo ??= di.Get<DbRepository>();
             dbRepo.CreateOrMigrateTable<ReactiveMessage>();
         }
 
         public override void UpdateRoutine(string installedVersion, DiContainer di) {
-            if (dbRepo == null) {
-                dbRepo = di.Get<DbRepository>();
-            }
+            dbRepo ??= di.Get<DbRepository>();
 
             if (installedVersion != localDescriptor.Version) {
                 dbRepo.CreateOrMigrateTable<ReactiveMessage>();
