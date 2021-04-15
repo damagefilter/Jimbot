@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Discord;
@@ -25,22 +26,28 @@ namespace Jimbot.Plugins.Builtin.Chatbot {
         }
 
         private async Task HandleChatMessage(SocketMessage msg) {
-            if (msg.Author.IsBot || !(msg is SocketUserMessage message) || message.Channel is IDMChannel) {
-                return;
+            try {
+                if (msg.Author.IsBot || !(msg is SocketUserMessage message) || message.Channel is IDMChannel) {
+                    return;
+                }
+
+                // ignore commands
+                if (message.Content == null || message.Content.StartsWith("!")) {
+                    return;
+                }
+
+                if (!conversations.ContainsKey(message.Author.Id)) {
+                    var convo = di.Get<Conversation>();
+                    convo.SetUser(message.Author);
+                    conversations.Add(message.Author.Id, convo);
+                }
+
+                await conversations[message.Author.Id].HandleMessage(msg);
+            }
+            catch (Exception e) {
+                log.Error(e);
             }
 
-            // ignore commands
-            if (message.Content == null || message.Content.StartsWith("!")) {
-                return;
-            }
-
-            if (!conversations.ContainsKey(message.Author.Id)) {
-                var convo = di.Get<Conversation>();
-                convo.SetUser(message.Author);
-                conversations.Add(message.Author.Id, convo);
-            }
-
-            await conversations[message.Author.Id].HandleMessage(msg);
         }
     }
 }
