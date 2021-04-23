@@ -53,6 +53,12 @@ namespace Jimbot.Plugins.Builtin.Chatbot.Ai {
             float originalMood = currentMoodValue; // need for resetting in case we get a derp and update a message we dont respond to.
             UpdateConversationMood(incomingMessage.Content);
 
+            // we use this to make the bot forget it was spoken to in order to not drag a conversation along for hours.
+            if (lastSpokenTo != DateTime.MinValue && (DateTime.Now - lastSpokenTo).Minutes > 2) {
+                log.Info("Conversation with " + user.GetDisplayName() + " has timed out. Minutes value is " + (DateTime.Now - lastSpokenTo).Minutes);
+                conversationRunning = false;
+            }
+
             var numRules = memory.FindRules(incomingMessage.Content, GetConversationMood(), conversationRunning, ruleCache);
             if (numRules == 0) {
                 // reset mood because this was likely not directed at the bot
@@ -63,11 +69,7 @@ namespace Jimbot.Plugins.Builtin.Chatbot.Ai {
                 log.Info("Conversation with " + user.GetDisplayName() + " is marked running.");
                 conversationRunning = true;
             }
-            // we use this to make the bot forget it was spoken to in order to not drag a conversation along for hours.
-            if (lastSpokenTo != DateTime.MinValue && (DateTime.Now - lastSpokenTo).Minutes > 2) {
-                log.Info("Conversation with " + user.GetDisplayName() + " has timed out. Minutes value is " + (DateTime.Now - lastSpokenTo).Minutes);
-                conversationRunning = false;
-            }
+
             lastSpokenTo = DateTime.Now;
             await SendResponse(ruleCache[random.Next(0, numRules)], incomingMessage.Channel);
         }

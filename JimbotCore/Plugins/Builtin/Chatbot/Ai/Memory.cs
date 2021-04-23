@@ -8,7 +8,7 @@ namespace Jimbot.Plugins.Builtin.Chatbot.Ai {
     /// Remembers all our responses and the required preconditions to trigger them
     /// </summary>
     public class Memory {
-        private Dictionary<Mood, List<CompiledRule>> responses;
+        private readonly Dictionary<Mood, List<CompiledRule>> responses;
 
         [Inject]
         public Memory(ChatbotConfig cfg, ChatbotRuleConfig rules) {
