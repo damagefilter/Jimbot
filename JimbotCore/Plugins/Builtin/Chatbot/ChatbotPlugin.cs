@@ -1,5 +1,6 @@
 using Jimbot.Di;
 using Jimbot.Plugins.Builtin.Chatbot.Ai;
+using Jimbot.Plugins.Builtin.Chatbot.Placeholder;
 using Jimbot.Plugins.Builtin.Chatbot.Rules;
 using Ninject;
 
@@ -11,10 +12,13 @@ namespace Jimbot.Plugins.Builtin.Chatbot {
             diContainer.GetImplementation().Bind<ChatbotRuleConfig>().ToMethod(x => ChatbotRuleConfig.Load(x.Kernel.Get<ChatbotConfig>())).InSingletonScope();
             diContainer.GetImplementation().Bind<Memory>().ToSelf().InSingletonScope();
             diContainer.GetImplementation().Bind<ConversationHandler>().ToSelf().InSingletonScope();
+            diContainer.GetImplementation().Bind<PlaceholderHandler>().ToSelf().InSingletonScope();
         }
 
         public override void Enable(DiContainer diContainer) {
             handler = diContainer.Get<ConversationHandler>();
+            // register placeholders
+            diContainer.Get<PlaceholderHandler>().RegisterProvider(diContainer.Get<DefaultPlaceholderProvider>());
 
         }
 

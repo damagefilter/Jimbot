@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Discord.WebSocket;
 using Jimbot.Extensions;
 using Jimbot.Logging;
+using Jimbot.Plugins.Builtin.Chatbot.Placeholder;
 using Jimbot.Plugins.Builtin.Chatbot.Rules;
 using Ninject;
 
@@ -12,8 +13,8 @@ namespace Jimbot.Plugins.Builtin.Chatbot.Ai {
         private readonly Memory memory;
 
         private readonly Logger log;
-        private SocketUser user;
         private CompiledRule[] ruleCache = new CompiledRule[10];
+        private PlaceholderHandler placeholderHandler;
 
         /// <summary>
         /// Ranges from 0 to 1 where each third of the spectrum accounts for one
@@ -32,17 +33,20 @@ namespace Jimbot.Plugins.Builtin.Chatbot.Ai {
         private Random random;
 
         [Inject]
-        public Conversation(Memory memory, ChatbotConfig config, [Named("plugin")]Logger log) {
+        public Conversation(Memory memory, ChatbotConfig config, [Named("plugin")]Logger log, PlaceholderHandler ph) {
             this.memory = memory;
             currentMoodValue = .5f;
             negativeWordMatchPattern = new Regex(string.Join("|", config.NegativeWords), RegexOptions.Compiled | RegexOptions.IgnoreCase);
             positiveWordMatchPattern = new Regex(string.Join("|", config.PositiveWords), RegexOptions.Compiled | RegexOptions.IgnoreCase);
             this.log = log;
             random = new Random();
+            placeholderHandler = ph;
         }
 
+        public SocketUser ConversationPartner { get; private set; }
+
         public void SetUser(SocketUser user) {
-            this.user = user;
+            this.ConversationPartner = user;
         }
 
         public async Task HandleMessage(SocketMessage incomingMessage) {
@@ -55,7 +59,6 @@ namespace Jimbot.Plugins.Builtin.Chatbot.Ai {
 
             // we use this to make the bot forget it was spoken to in order to not drag a conversation along for hours.
             if (lastSpokenTo != DateTime.MinValue && (DateTime.Now - lastSpokenTo).Minutes > 2) {
-                log.Info("Conversation with " + user.GetDisplayName() + " has timed out. Minutes value is " + (DateTime.Now - lastSpokenTo).Minutes);
                 conversationRunning = false;
             }
 
@@ -66,7 +69,6 @@ namespace Jimbot.Plugins.Builtin.Chatbot.Ai {
                 return;
             }
             if (!conversationRunning) {
-                log.Info("Conversation with " + user.GetDisplayName() + " is marked running.");
                 conversationRunning = true;
             }
 
@@ -91,7 +93,8 @@ namespace Jimbot.Plugins.Builtin.Chatbot.Ai {
 
             await Task.Delay(TimeSpan.FromSeconds(timeToWait));
             isTypingState.Dispose();
-            await channel.SendMessageAsync(msg.Replace("{user}", user.GetDisplayName()));
+            msg = placeholderHandler.Replace(msg, this);
+            await channel.SendMessageAsync(msg);
         }
 
         private void UpdateConversationMood(string message) {

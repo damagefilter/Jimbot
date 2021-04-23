@@ -17,6 +17,7 @@ namespace Jimbot.Plugins.Builtin.Chatbot {
 
         private Dictionary<ulong, Conversation> conversations = new();
 
+
          [Inject]
         public ConversationHandler([Named("plugin")]Logger log, DiscordBot bot, DiContainer di) {
             this.log = log;
