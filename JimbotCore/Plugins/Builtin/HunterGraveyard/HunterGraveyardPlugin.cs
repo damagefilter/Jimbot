@@ -1,12 +1,25 @@
-﻿using Jimbot.Db;
+﻿using System;
+using Jimbot.Db;
 using Jimbot.Di;
+using Jimbot.Discord;
+using Jimbot.Logging;
 
 namespace Jimbot.Plugins.Builtin.HunterGraveyard {
     public class HunterGraveyardPlugin : Plugin {
         public override void ProvideResources(DiContainer diContainer) {
         }
 
-        public override void Enable(DiContainer diContainer) {
+        public override async void Enable(DiContainer diContainer) {
+            var bot = diContainer.Get<DiscordBot>();
+            var log = diContainer.Get<Logger>("plugin");
+            
+            try {
+                log.Info("Registering Hunter Commands");
+                await bot.RegisterCommands<HunterCommands>();
+            }
+            catch (Exception e) {
+                log.Error("Failed to register hunter commands", e);
+            }
         }
 
         public override void InstallRoutine(DiContainer di) {

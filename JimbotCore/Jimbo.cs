@@ -7,12 +7,12 @@ using Jimbot.Plugins;
 using Ninject;
 
 namespace Jimbot {
-    internal class Jimbo {
+    class Jimbo {
         public static void Main(string[] args) {
             LogManager.ConfigureLogger();
             Logger log = LogManager.GetLogger(typeof(Jimbo));
             DiContainer di = PrepareDi();
-            BootstrapPlugins(di);
+            
             // Start the damn thing in an async context
             try {
                 new Jimbo().MainAsync(di, log).GetAwaiter().GetResult();
@@ -25,8 +25,10 @@ namespace Jimbot {
         }
 
         public async Task MainAsync(DiContainer di, Logger log) {
+            await BootstrapPlugins(di.Get<PluginLoader>());
             var bot = di.Get<DiscordBot>();
             try {
+                log.Info("Starting Bot");
                 await bot.Run();
             }
             catch (Exception e) {
@@ -35,17 +37,15 @@ namespace Jimbot {
         }
 
         private static DiContainer PrepareDi() {
-            var kernel = new StandardKernel();
-            kernel.Load(new BotInjectionModule());
+            var kernel = new StandardKernel(new BotInjectionModule());
+            // kernel.Load(new BotInjectionModule());
             return kernel.Get<DiContainer>();
         }
 
-        private static PluginLoader BootstrapPlugins(DiContainer di) {
-            PluginLoader pluginLoader = di.Get<PluginLoader>();
-            pluginLoader.LoadPlugins();
-            pluginLoader.EnsureInstallations(di);
-            pluginLoader.EnablePlugins(di);
-            return pluginLoader;
+        private static async Task BootstrapPlugins(PluginLoader pluginLoader) {
+            await pluginLoader.LoadPlugins();
+            pluginLoader.EnsureInstallations();
+            pluginLoader.EnablePlugins();
         }
     }
 }

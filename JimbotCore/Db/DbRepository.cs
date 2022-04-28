@@ -13,11 +13,24 @@ namespace Jimbot.Db {
 
         public DbRepository(AppConfig cfg, [Named("db")] Logger log) {
             db = new SQLiteConnection(cfg.DbPath);
+            
             this.log = log;
         }
 
         public void CreateOrMigrateTable<T>() where T : class, new () {
             db.CreateTable<T>();
+        }
+
+        public void BeginTransaction() {
+            db.BeginTransaction();
+        }
+
+        public void Rollback() {
+            db.Rollback();
+        }
+
+        public void CommitTransaction() {
+            db.Commit();
         }
 
         public T FindOne<T>(int id) where T : class, new() {
@@ -65,16 +78,16 @@ namespace Jimbot.Db {
             db?.Dispose();
         }
 
-        public void Insert<T>(T obj) where T : class, new() {
-            db.Insert(obj);
+        public bool Insert<T>(T obj) where T : class, new() {
+            return db.Insert(obj) > 0;
         }
 
         public void Update<T>(T obj) where T : class, new() {
             db.Update(obj);
         }
 
-        public void InsertOrReplace<T>(T obj) where T : class, new() {
-            db.InsertOrReplace(obj);
+        public bool InsertOrReplace<T>(T obj) where T : class, new() {
+            return db.InsertOrReplace(obj) > 0;
         }
 
         public void Delete<T>(T obj) where T : class, new() {

@@ -7,7 +7,7 @@ using Jimbot.Db;
 using Jimbot.Di;
 using Jimbot.Logging;
 using System.Linq;
-using Discord.Commands;
+using System.Threading.Tasks;
 using Jimbot.Discord;
 using Ninject;
 
@@ -37,7 +37,7 @@ namespace Jimbot.Plugins {
             this.di = di;
         }
 
-        public void LoadPlugins(string pluginPath = null) {
+        public async Task LoadPlugins(string pluginPath = null) {
             // When we run as service, we must specify an absolute path because
             // the service working directory is not the directory where the actual executable is
             if (string.IsNullOrEmpty(pluginPath)) {
@@ -61,7 +61,12 @@ namespace Jimbot.Plugins {
 
             foreach (var type in builtInPlugins) {
                 try {
-                    var instance = (Plugin)Activator.CreateInstance(type);
+                    
+                    var instance = (Plugin)di.Get(type);
+                    if (instance == null) {
+                        log.Error($"Loading plugin {type} failed!");
+                        continue;
+                    }
                     log.Info($"Loading plugin {type} from built in resource");
                     plugins.Add(instance);
                     instance.ProvideResources(di);
@@ -70,10 +75,6 @@ namespace Jimbot.Plugins {
                     log.Error($"Loading plugin {type} from built in resource", e);
                 }
             }
-
-            log.Info("Registering built-in commands ...");
-            discordBot.Commands.AddModulesAsync(Assembly.GetExecutingAssembly(), di.GetImplementation().Kernel);
-
 
             foreach (var file in Directory.EnumerateFiles(pluginPath, "*.dll")) {
                 // load the dll
@@ -85,7 +86,11 @@ namespace Jimbot.Plugins {
 
                 foreach (var type in pluginTypes) {
                     try {
-                        var instance = (Plugin)Activator.CreateInstance(type);
+                        var instance = (Plugin)di.Get(type);
+                        if (instance == null) {
+                            log.Error($"Loading plugin {type} failed!");
+                            continue;
+                        }
                         log.Info($"Loading plugin {type} from {file}");
                         plugins.Add(instance);
                         instance.ProvideResources(di);
@@ -95,41 +100,53 @@ namespace Jimbot.Plugins {
                     }
                 }
                 log.Info($"Registering commands from {file}");
-                discordBot.Commands.AddModulesAsync(dll, di.GetImplementation().Kernel);
+                await discordBot.Commands.AddModulesAsync(dll, di.GetImplementation().Kernel);
             }
         }
 
-        public void EnsureInstallations(DiContainer di) {
+        public void EnsureInstallations() {
             log.Info("*** Ensuring Plugin installations ...");
             database.CreateOrMigrateTable<DbPlugin>();
-            foreach (Plugin plugin in plugins) {
-                var descriptor = plugin.GetDescriptor();
+            try {
+                database.BeginTransaction();
+                foreach (Plugin plugin in plugins) {
+                    var descriptor = plugin.GetDescriptor();
 
-                var databasePluginData = database.FindOne<DbPlugin>(x => x.Name == descriptor.Name);
-                if (databasePluginData == null) {
-                    plugin.InstallRoutine(di);
-                    databasePluginData = new DbPlugin {
-                        Name = descriptor.Name,
-                        Author = descriptor.Author,
-                        Version = descriptor.Version
-                    };
-                    database.InsertOrReplace(databasePluginData);
-                    log.Info($"{descriptor.Name} installed ...");
-                }
-                else {
-                    if (descriptor.Version != databasePluginData.Version) {
-                        plugin.UpdateRoutine(databasePluginData.Version, di);
-                        log.Info($"{descriptor.Name} updated from {databasePluginData.Version} to {descriptor.Version}");
+                    var databasePluginData = database.FindOne<DbPlugin>(x => x.Name == descriptor.Name);
+                    if (databasePluginData == null) {
+                        plugin.InstallRoutine(di);
+                        databasePluginData = new DbPlugin {
+                            Name = descriptor.Name,
+                            Author = descriptor.Author,
+                            Version = descriptor.Version
+                        };
+                        if (database.Insert(databasePluginData)) {
+                            log.Info($"{descriptor.Name} installed ...");
+                        }
+                        else {
+                            log.Warn($"{descriptor.Name} installation failed ...");
+                        }
+                        
                     }
                     else {
-                        log.Info($"{descriptor.Name} does not need updating");
+                        if (descriptor.Version != databasePluginData.Version) {
+                            plugin.UpdateRoutine(databasePluginData.Version, di);
+                            log.Info($"{descriptor.Name} updated from {databasePluginData.Version} to {descriptor.Version}");
+                        }
+                        else {
+                            log.Info($"{descriptor.Name} does not need updating");
+                        }
                     }
                 }
+                database.CommitTransaction();
             }
-
+            catch (Exception e) {
+                log.Error("Failed to ensure plugin installations", e);
+                database.Rollback();
+            }
         }
 
-        public void EnablePlugins(DiContainer di) {
+        public void EnablePlugins() {
             log.Info("*** Enabling plugins ...");
             foreach (var plugin in plugins) {
                 log.Info("Enabling " + plugin.GetDescriptor().Name);

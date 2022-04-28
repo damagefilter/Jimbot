@@ -16,7 +16,10 @@ namespace Jimbot.Logging {
         #region Singleton
         private static LogManager instance;
 
-        private static LogManager Instance {
+        /// <summary>
+        /// This is for the DI only!
+        /// </summary>
+        public static LogManager Instance {
             get {
                 if (instance == null) {
                     instance = new LogManager();

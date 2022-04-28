@@ -21,11 +21,11 @@ namespace Jimbot.Plugins.Builtin.ReactionRole {
         private DbRepository repo;
         private Logger log;
 
-        public ReactionControlCommands(MessageConfiguration msgCfg, DiscordBot bot, DbRepository repo, [Named("plugin")]Logger log) {
+        public ReactionControlCommands(MessageConfiguration msgCfg, DiscordBot bot, DbRepository repo) {
             this.msgCfg = msgCfg;
             this.bot = bot;
             this.repo = repo;
-            this.log = log;
+            this.log = log = bot.GetLogger(GetType());
         }
 
         [Command("jrr begin")]

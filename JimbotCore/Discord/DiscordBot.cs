@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
@@ -27,16 +28,28 @@ namespace Jimbot.Discord {
                 LogLevel = LogSeverity.Info,
                 AlwaysDownloadUsers = true // apparently the API hangs indefinitely when this is not set, everytime we request a user data. go figure.
             });
+            
             client.MessageReceived += HandleCommands;
 
             log = LogManager.GetLogger(GetType());
             this.cfg = cfg;
+            ninjectKernel = di.GetImplementation().Kernel;
 
             commands = new CommandService(new CommandServiceConfig {
                 LogLevel = LogSeverity.Info,
                 CaseSensitiveCommands = false,
             });
-            ninjectKernel = di.GetImplementation().Kernel;
+
+        }
+
+        public async Task RegisterCommands<T>() where T : ModuleBase<SocketCommandContext> {
+            await commands.AddModuleAsync(typeof(T), ninjectKernel);
+        }
+
+        public Logger GetLogger(Type type) {
+            // Because ninject when inside discords app domain, cannot resolve loggers for some reason, we need to get them via the bot
+            // in order to stay somewhat clean with the logger factory stuff
+            return LogManager.GetLogger(type);
         }
 
         public async Task Run() {
@@ -51,14 +64,6 @@ namespace Jimbot.Discord {
             // Block task from stopping until the program quits
             await Task.Delay(-1);
         }
-
-        // private async Task OnReactionRemoved(Cacheable<IUserMessage, ulong> message, ISocketMessageChannel channel, SocketReaction reaction) {
-        //     log.Info("Reaction removed: " + reaction.Emote);
-        // }
-        //
-        // private async Task OnReactionAdded(Cacheable<IUserMessage, ulong> message, ISocketMessageChannel channel, SocketReaction reaction) {
-        //     log.Info("Reaction added: " + reaction.Emote);
-        // }
 
         private async Task HandleCommands(SocketMessage msg) {
             if (msg.Author.IsBot || !(msg is SocketUserMessage message) || message.Channel is IDMChannel) {

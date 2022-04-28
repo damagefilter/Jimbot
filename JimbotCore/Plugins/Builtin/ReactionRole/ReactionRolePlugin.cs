@@ -8,25 +8,38 @@ using Jimbot.Di;
 using Jimbot.Discord;
 using Jimbot.Extensions;
 using Jimbot.Logging;
+using Ninject;
 
 namespace Jimbot.Plugins.Builtin.ReactionRole {
     public class ReactionRolePlugin : Plugin {
         private DbRepository dbRepo;
         private DiscordBot bot;
         private Logger log;
+
+        public ReactionRolePlugin([Named("plugin")]Logger log) {
+            this.log = log;
+        }
         public override void ProvideResources(DiContainer diContainer) {
             // we need to keep the state via this as singleton because discords command handler
             // instantiates new command instances each time, instead of recycling existing ones. Grah!
             diContainer.GetImplementation().Bind<MessageConfiguration>().ToSelf().InSingletonScope();
         }
 
-        public override void Enable(DiContainer diContainer) {
+        public override async void Enable(DiContainer diContainer) {
             bot = diContainer.Get<DiscordBot>();
             dbRepo = diContainer.Get<DbRepository>();
             log = diContainer.Get<Logger>("plugin");
 
             bot.DiscordClient.ReactionAdded += OnReactionAdded;
             bot.DiscordClient.ReactionRemoved += OnReactionRemoved;
+
+            try {
+                log.Info("Registering Reaction Control Commands");
+                await bot.RegisterCommands<ReactionControlCommands>();
+            }
+            catch (Exception e) {
+                log.Error("Failed to register reaction control commands", e);
+            }
         }
 
         private async Task OnReactionRemoved(Cacheable<IUserMessage, ulong> message, Cacheable<IMessageChannel, ulong> channel, SocketReaction reaction) {

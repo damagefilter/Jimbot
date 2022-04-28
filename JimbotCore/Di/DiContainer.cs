@@ -19,6 +19,10 @@ namespace Jimbot.Di {
         public T Get<T>(string name) {
             return this.resolver.Get<T>(name);
         }
+        
+        public object Get(Type type) {
+            return resolver.Get(type);
+        }
 
         /// <summary>
         /// Add a new Binding to the dependency containerBuilder.

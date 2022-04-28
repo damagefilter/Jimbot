@@ -5,15 +5,18 @@ using Discord.Commands;
 using Discord.WebSocket;
 using Jimbot.Db;
 using Jimbot.Discord;
+using Jimbot.Logging;
 
 namespace Jimbot.Plugins.Builtin.HunterGraveyard {
     public class HunterCommands : ModuleBase<SocketCommandContext> {
         private DiscordBot bot;
         private DbRepository repo;
+        private Logger log;
         
         public HunterCommands(DiscordBot bot, DbRepository repo) {
             this.bot = bot;
             this.repo = repo;
+            log = bot.GetLogger(GetType());
         }
         
         [Command("hunter help")]
@@ -103,8 +106,11 @@ namespace Jimbot.Plugins.Builtin.HunterGraveyard {
             }
 
             grave.UserId = Context.User.Id.ToString();
-            
-            repo.Insert(grave);
+
+            if (!repo.Insert(grave)) {
+                await ReplyAsync("Es hat einen Fehler beim begraben gegeben. Versuchs noch einmal.");
+                return;
+            }
 
             await ReplyAsync($"{grave.HunterName} von {Context.User.Username} ruht nun in Frieden ...");
             if (grave.Kills == 0 && grave.RoundsSurvived == 0) {
