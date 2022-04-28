@@ -98,7 +98,7 @@ namespace Jimbot.Plugins.Builtin.Chatbot.Rules {
         public string GetRandomMessage() {
             int baseProbability = random.Next(1, 101); // chance that we respond with anything at all
             // -1 probability in nodes means it should always be considered.
-            return GetWightedRandomItem(messages.Where(x => x.Probability >= baseProbability || x.Probability < 0), x => x.Probability < 0 ? 100 : x.Probability).Message;
+            return GetWightedRandomItem(messages.Where(x => x.Probability >= baseProbability || x.Probability < 0), x => x.Probability < 0 ? 100 : x.Probability)?.Message;
         }
 
         // https://stackoverflow.com/a/9141878

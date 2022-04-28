@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Jimbot.Config;
+using Jimbot.Discord;
 using Jimbot.Plugins.Builtin.Chatbot.Ai;
 using Jimbot.Tools;
 using Newtonsoft.Json;
@@ -106,7 +107,7 @@ namespace Jimbot.Plugins.Builtin.Chatbot.Rules {
             File.WriteAllText(path, JsonConvert.SerializeObject(this, Formatting.Indented));
         }
 
-        public static ChatbotRuleConfig Load(ChatbotConfig cfg) {
+        public static ChatbotRuleConfig Load(ChatbotConfig cfg, DiscordBot bot) {
             // I love late static binding
             string path = cfg.RulesPath;
 
@@ -116,10 +117,15 @@ namespace Jimbot.Plugins.Builtin.Chatbot.Rules {
             ChatbotRuleConfig combined = new ChatbotRuleConfig();
             combined.responseRules = new List<RawResponseNode>();
             foreach (var file in Directory.EnumerateFiles(path, "*.json")) {
-                ChatbotRuleConfig obj = JsonConvert.DeserializeObject<ChatbotRuleConfig>(File.ReadAllText(file));
-                if (obj != null) {
-                    hasFiles = true;
-                    combined.responseRules.AddRange(obj.responseRules);
+                try {
+                    ChatbotRuleConfig obj = JsonConvert.DeserializeObject<ChatbotRuleConfig>(File.ReadAllText(file));
+                    if (obj != null) {
+                        hasFiles = true;
+                        combined.responseRules.AddRange(obj.responseRules);
+                    }
+                }
+                catch (Exception e) {
+                    bot.GetLogger(typeof(ChatbotRuleConfig)).Error($"Failed parsing rule file {file}", e);
                 }
             }
 

@@ -88,7 +88,7 @@ namespace Jimbot.Plugins.Builtin.Chatbot.Ai {
             // float kph = 15000; // 15k keystrokes per hour
             // float kpm = kph / 60; // keystrokes per minute
             // float kps = kpm / 60; // keystrokes per second.
-            float keysPerSec = 6.0f;
+            float keysPerSec = 8.0f;
             float timeToWait = (1f / keysPerSec) * msg.Length;
 
             await Task.Delay(TimeSpan.FromSeconds(timeToWait));

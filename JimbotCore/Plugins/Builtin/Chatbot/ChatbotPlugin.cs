@@ -1,4 +1,5 @@
 using Jimbot.Di;
+using Jimbot.Discord;
 using Jimbot.Plugins.Builtin.Chatbot.Ai;
 using Jimbot.Plugins.Builtin.Chatbot.Placeholder;
 using Jimbot.Plugins.Builtin.Chatbot.Rules;
@@ -9,7 +10,7 @@ namespace Jimbot.Plugins.Builtin.Chatbot {
         private ConversationHandler handler;
         public override void ProvideResources(DiContainer diContainer) {
             diContainer.GetImplementation().Bind<ChatbotConfig>().ToMethod(x => ChatbotConfig.Load()).InSingletonScope();
-            diContainer.GetImplementation().Bind<ChatbotRuleConfig>().ToMethod(x => ChatbotRuleConfig.Load(x.Kernel.Get<ChatbotConfig>())).InSingletonScope();
+            diContainer.GetImplementation().Bind<ChatbotRuleConfig>().ToMethod(x => ChatbotRuleConfig.Load(x.Kernel.Get<ChatbotConfig>(), x.Kernel.Get<DiscordBot>())).InSingletonScope();
             diContainer.GetImplementation().Bind<Memory>().ToSelf().InSingletonScope();
             diContainer.GetImplementation().Bind<ConversationHandler>().ToSelf().InSingletonScope();
             diContainer.GetImplementation().Bind<PlaceholderHandler>().ToSelf().InSingletonScope();
