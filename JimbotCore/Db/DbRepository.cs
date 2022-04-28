@@ -30,11 +30,20 @@ namespace Jimbot.Db {
             }
         }
 
-        public T FindOne<T>(Expression<Func<T, bool>> predicate) where T : class, new() {
+        public T FindOne<T>(Expression<Func<T, bool>> predicate, Expression<Func<T, int>> order = null, bool desc = true) where T : class, new() {
             try {
                 // there is Get() but Get() throws invalidop when there are no results.
                 // but it is actually expected behaviour, so stick to using find.
-                return db.Find(predicate);
+                if (order == null) {
+                    return db.Find(predicate);
+                }
+                if (desc) {
+                    return db.Table<T>().Where(predicate).OrderByDescending(order).FirstOrDefault();
+                }
+                else {
+                    return db.Table<T>().Where(predicate).OrderBy(order).FirstOrDefault();
+                }
+                
             }
             catch (Exception e) {
                 log.Warn(e.Message, e);

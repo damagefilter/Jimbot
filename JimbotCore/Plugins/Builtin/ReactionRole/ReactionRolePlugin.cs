@@ -29,7 +29,7 @@ namespace Jimbot.Plugins.Builtin.ReactionRole {
             bot.DiscordClient.ReactionRemoved += OnReactionRemoved;
         }
 
-        private async Task OnReactionRemoved(Cacheable<IUserMessage, ulong> message, ISocketMessageChannel channel, SocketReaction reaction) {
+        private async Task OnReactionRemoved(Cacheable<IUserMessage, ulong> message, Cacheable<IMessageChannel, ulong> channel, SocketReaction reaction) {
             string emote = reaction.Emote.Name;
             var msg = dbRepo.FindOne<ReactiveMessage>(x => x.Emote == emote);
             if (msg == null) {
@@ -60,7 +60,7 @@ namespace Jimbot.Plugins.Builtin.ReactionRole {
             }
         }
 
-        private async Task OnReactionAdded(Cacheable<IUserMessage, ulong> message, ISocketMessageChannel channel, SocketReaction reaction) {
+        private async Task OnReactionAdded(Cacheable<IUserMessage, ulong> message, Cacheable<IMessageChannel, ulong> channel, SocketReaction reaction) {
             // if (!reaction.User.IsSpecified) {
             //     Console.WriteLine("No user. can't do.");
             //     return;
