@@ -36,6 +36,7 @@ Desktop.ini
 
 # User-specific files
 *.sln.docstates
+config_defaults/*
 
 # Build results
 

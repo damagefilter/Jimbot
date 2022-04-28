@@ -58,7 +58,7 @@ namespace Jimbot.Plugins.Builtin.Chatbot.Ai {
             UpdateConversationMood(incomingMessage.Content);
 
             // we use this to make the bot forget it was spoken to in order to not drag a conversation along for hours.
-            if (lastSpokenTo != DateTime.MinValue && (DateTime.Now - lastSpokenTo).Minutes > 2) {
+            if (lastSpokenTo != DateTime.MinValue && (DateTime.Now - lastSpokenTo).TotalMinutes > 2) {
                 conversationRunning = false;
             }
 
