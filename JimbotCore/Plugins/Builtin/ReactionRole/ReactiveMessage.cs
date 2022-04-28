@@ -14,9 +14,11 @@ namespace Jimbot.Plugins.Builtin.ReactionRole {
 
         public bool IsUnicodeEmote { get; set; }
 
+        [Indexed]
         // These are ulong normally but sqlite-net doesn't do ulong
         public string ChannelId { get; set; }
 
+        [Indexed]
         public string MessageId { get; set; }
 
         public string GuildId { get; set; }

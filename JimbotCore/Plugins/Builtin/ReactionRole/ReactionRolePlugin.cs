@@ -44,32 +44,34 @@ namespace Jimbot.Plugins.Builtin.ReactionRole {
 
         private async Task OnReactionRemoved(Cacheable<IUserMessage, ulong> message, Cacheable<IMessageChannel, ulong> channel, SocketReaction reaction) {
             string emote = reaction.Emote.Name;
-            var msg = dbRepo.FindOne<ReactiveMessage>(x => x.Emote == emote);
+            string msgIdString = message.Id.ToString();
+            string channelIdString = channel.Id.ToString();
+            var msg = dbRepo.FindOne<ReactiveMessage>(x => x.MessageId == msgIdString && x.ChannelId == channelIdString && x.Emote == emote);
             if (msg == null) {
+                log.Warn($"Reaction removed: {emote} from message {msgIdString} - but no message found with this ID ...");
                 return;
             }
 
-            if (msg.MessageIdNum == message.Id && msg.ChannelIdNum == reaction.Channel.Id && reaction.Emote.Name == msg.Emote) {
-                try {
-                    if (!(bot.DiscordClient.Guilds.FirstOrDefault(x => x.Id == msg.GuildIdNum) is SocketGuild guild)) {
-                        return;
-                    }
-
-                    // var guild = bot.DiscordClient.Guilds.FirstOrDefault(x => x.Id == msg.GuildIdNum);
-                    var role = guild.GetRole(msg.DiscordRoleIdNum);
-                    await guild.DownloadUsersAsync();
-                    var user = guild.GetUser(reaction.UserId);
-                    if (user == null) {
-                        log.Warn("Cannot get user from channel. Well crap.");
-                        return;
-                    }
-                    await user.RemoveRoleAsync(role);
-                    log.Info($"Role {role.Name} removed from {user.GetDisplayName()}!");
-
+            try {
+                if (!(bot.DiscordClient.Guilds.FirstOrDefault(x => x.Id == msg.GuildIdNum) is SocketGuild guild)) {
+                    log.Warn($"Message from unknown server ...???");
+                    return;
                 }
-                catch (Exception e) {
-                    log.Error($"Failed removing role. {e.Message}", e);
+
+                // var guild = bot.DiscordClient.Guilds.FirstOrDefault(x => x.Id == msg.GuildIdNum);
+                var role = guild.GetRole(msg.DiscordRoleIdNum);
+                await guild.DownloadUsersAsync();
+                var user = guild.GetUser(reaction.UserId);
+                if (user == null) {
+                    log.Warn("Cannot get user from channel. Well crap.");
+                    return;
                 }
+                await user.RemoveRoleAsync(role);
+                log.Info($"Role {role.Name} removed from {user.GetDisplayName()}!");
+
+            }
+            catch (Exception e) {
+                log.Error($"Failed removing role. {e.Message}", e);
             }
         }
 
