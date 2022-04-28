@@ -83,10 +83,10 @@ namespace Jimbot.Plugins.Builtin.HunterGraveyard {
                 return;
             }
             
-            var killCount = Regex.Match(txt, "(?:kills|killed)\\s*:\\s*(\\d+),*");
-            var survived = Regex.Match(txt, "(?:runden|rounds|survived)\\s*:\\s*(\\d+),*");
-            var deathBy = Regex.Match(txt, "(?:killer|death by|killed by)\\s*:\\s*([a-zA-Z\u00C0-\u024F\\s.-_:0-9]+),*");
-            var level = Regex.Match(txt, "(?:level|levels|age|alter)\\s*:\\s*(\\d+),*");
+            var killCount = Regex.Match(txt, "(?:kills|frags)\\s*:*\\s*(\\d+),*");
+            var survived = Regex.Match(txt, "(?:runden|rounds|survived)\\s*:*\\s*(\\d+),*");
+            var deathBy = Regex.Match(txt, "(?:killer|death by|killed by|killed)\\s*:*\\s*([a-zA-Z\u00C0-\u024F\\s.-_:0-9]+),*");
+            var level = Regex.Match(txt, "(?:level|levels|age|alter)\\s*:*\\s*(\\d+),*");
 
             var grave = new HunterGrave();
             grave.HunterName = hunterName.Groups[1].Value;
