@@ -5,6 +5,7 @@ using Discord.Commands;
 using Discord.WebSocket;
 using Jimbot.Db;
 using Jimbot.Discord;
+using Jimbot.Extensions;
 using Jimbot.Logging;
 
 namespace Jimbot.Plugins.Builtin.HunterGraveyard {
@@ -33,13 +34,13 @@ namespace Jimbot.Plugins.Builtin.HunterGraveyard {
             string uid = Context.User.Id.ToString();
             var hunter = repo.FindOne<HunterGrave>(x => x.UserId == uid, y => y.Id, true);
             if (hunter == null) {
-                await ReplyAsync($"Du hast noch keinen Hunter beerdigt, {Context.User.Username}");
+                await ReplyAsync($"Du hast noch keinen Hunter beerdigt, {Context.User.GetDisplayName()}");
                 return;
             }
 
             string unspecified = "unbekannte Umstände";
             
-            await ReplyAsync($"**{Context.User.Username}**'s letzter Hunter: **{hunter.HunterName}**");
+            await ReplyAsync($"**{Context.User.GetDisplayName()}**'s letzter Hunter: **{hunter.HunterName}**");
             await ReplyAsync($"Er lebte für **{hunter.RoundsSurvived} Runden** und brachte dabei **{hunter.Kills} andere Hunter ins Grab**. Die Round/Kill Ratio war **{(float)hunter.RoundsSurvived / hunter.Kills}**");
             await ReplyAsync($"{hunter.HunterName} starb durch **{hunter.DeathBy ?? unspecified}** im Alter von **{hunter.CharacterLevel} leveln**");
         }
@@ -48,7 +49,7 @@ namespace Jimbot.Plugins.Builtin.HunterGraveyard {
         [RequireUserPermission(GuildPermission.SendMessages)]
         public async Task HunterStatsCommand(SocketUser user = null) {
             string uid = user != null ? user.Id.ToString() : Context.User.Id.ToString();
-            string userName = user != null ? user.Username : Context.User.Username;
+            string userName = user != null ? user.GetDisplayName() : Context.User.GetDisplayName();
             
             var hunters = repo.FindAll<HunterGrave>(x => x.UserId == uid);
             int numHunters = hunters.Count;
@@ -67,7 +68,7 @@ namespace Jimbot.Plugins.Builtin.HunterGraveyard {
             float avgLevels = (float)totalLevels / numHunters;
             
             await ReplyAsync($"**{userName}** beerdigte schon **{numHunters} Hutners**!");
-            await ReplyAsync($"Insgesamt kommen wir auf **{totalKills}** Kills, **{totalRounds}** Runden, **{avgLevels}** erreichte Level.");
+            await ReplyAsync($"Insgesamt kommen wir auf **{totalKills}** Kills, **{totalRounds}** Runden, **{totalLevels}** erreichte Level.");
             await ReplyAsync($"Im Durchschnitt kommen wir auf **{avgKills}** Kills, **{avgRounds}** Runden, **{avgLevels}** erreichte Level pro Hutner.");
             await ReplyAsync("Und das ist alles, im Großen und Ganzen");
         }
@@ -112,7 +113,7 @@ namespace Jimbot.Plugins.Builtin.HunterGraveyard {
                 return;
             }
 
-            await ReplyAsync($"{grave.HunterName} von {Context.User.Username} ruht nun in Frieden ...");
+            await ReplyAsync($"{grave.HunterName} von {Context.User.GetDisplayName()} ruht nun in Frieden ...");
             if (grave.Kills == 0 && grave.RoundsSurvived == 0) {
                 await ReplyAsync("... naja. Der hat's versucht.");
             }
@@ -121,8 +122,11 @@ namespace Jimbot.Plugins.Builtin.HunterGraveyard {
                 await ReplyAsync("... ein echtes One-Round-Wonder.");
             }
             
-            else if (grave.Kills > 0 && grave.RoundsSurvived > 0) {
+            else if (grave.Kills is > 0 and <= 2 && grave.RoundsSurvived > 0) {
                 await ReplyAsync("... es war ein guter Run!");
+            }
+            else if (grave.Kills is > 2 && grave.RoundsSurvived > 0) {
+                await ReplyAsync("... was für eine **UN**fassbare Leistung!");
             }
             else {
                 await ReplyAsync("... es ist besser so.");
