@@ -24,10 +24,12 @@ namespace Jimbot.Discord {
         public CommandService Commands => commands;
 
         public DiscordBot(AppConfig cfg, DiContainer di) {
-            client = new DiscordSocketClient(new DiscordSocketConfig {
+            var socketCfg = new DiscordSocketConfig {
                 LogLevel = LogSeverity.Info,
                 AlwaysDownloadUsers = true // apparently the API hangs indefinitely when this is not set, everytime we request a user data. go figure.
-            });
+            };
+            socketCfg.GatewayIntents = GatewayIntents.GuildMembers | GatewayIntents.GuildPresences | GatewayIntents.AllUnprivileged;
+            client = new DiscordSocketClient(socketCfg);
             
             client.MessageReceived += HandleCommands;
 
